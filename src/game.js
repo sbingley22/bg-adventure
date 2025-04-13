@@ -99,12 +99,12 @@ function runGame(levelName="village") {
     if (clickTime > 200) return;
 
     raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObject(chars[0].obj, true);
+    const intersects = raycaster.intersectObject(ground, true);
 
     if (intersects.length > 0) {
-      character.playAnimation(chars[0], "Sword Slash");
+      chars[0].obj.userData.destination = intersects[0].point
     } else {
-      character.playAnimation(chars[1], "Pistol Fire");
+      chars[0].obj.userData.destination = null
     }
   }
 
@@ -122,6 +122,8 @@ function runGame(levelName="village") {
     const delta = clock.getDelta()
 
     if (chars.length > 0) {
+      character.updateCharacters(chars, delta)
+
       chars.forEach(c => {
         c.mixer.update(delta)
       })
