@@ -8,9 +8,14 @@ let charAnimations = {}
 let charModel = null
 
 const templates = {
+  "Hero": {
+    meshes: ["AnaGen", "Hair-Wavy", "Sword", "Shield", "PlateAbs", "PlateBoots", "PlateChest", "PlateForearms", "PlateShins", "PlateShoulder", "PlateThighs"],
+    meshColors: [{name: "anagen_1", color: 0x996655}],
+    scale: [1,1.1,1],
+  },
   "Fem": {
-    meshes: ["Ana", "Hair-Wavy", "Sword", "Shield"],
-    meshColors: [{name: "ana_1", color: 0x1144aa}],
+    meshes: ["Ana", "Hair-Parted", "Sword", "Shield"],
+    meshColors: [{name: "ana_1", color: 0xbbaa66}],
     morphs: [{meshName: "ana", morphName: "Hands Fist", value: 0.5}],
     scale: [1,1,1],
   },
@@ -164,7 +169,7 @@ function updateMorph(obj, meshName, morphName, value) {
         child.morphTargetInfluences[morphIndex] = value
       }
       else {
-        console.log("Couldn't find morph")
+        console.log("Couldn't find morph", obj, meshName)
       }
     }
   })

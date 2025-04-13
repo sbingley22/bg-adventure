@@ -1,9 +1,10 @@
 const levelData = {
   village: {
     chars: [
-      { template: "Knight", pos: [0,0,25] },
+      { template: "Hero", pos: [0,0,25] },
       { template: "Fem", pos: [1,0,20] },
       { template: "Male", pos: [-1,0,15] },
+      { template: "Knight", pos: [0,0,5] },
     ],
     ground: {
       type: "grass",
