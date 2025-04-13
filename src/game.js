@@ -142,7 +142,7 @@ function runGame(levelName="village") {
     const pos = chars[0].obj.position
     const offset = 5 * zoom
     camera.position.set(0, offset, pos.z + offset);
-    camera.lookAt(new THREE.Vector3(pos.x, pos.y, pos.z));
+    camera.lookAt(new THREE.Vector3(0, pos.y, pos.z));
   }
 
   window.addEventListener('resize', () => {

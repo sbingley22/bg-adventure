@@ -2,13 +2,12 @@ import * as THREE from 'three';
 import * as Model from './characterModel.js'
 
 function loadCharacters(scene, characters) {
-  return Model.loadModel(scene, characters)
+  const chars = Model.loadModel(scene, characters)
+  return chars
 }
 
 function addCharacter(scene, template, pos) {
   const character = Model.addCharacter(scene, template, pos)
-  character.obj.userData.health = 100
-  character.obj.userData.speed = 1.5
   return character
 }
 
@@ -53,10 +52,7 @@ function moveTo(ch, pos, minimumDistance = 0.01, delta) {
   const charSpeed = ch.userData.speed ? ch.userData.speed : 1
   const speed = charSpeed * delta
   const direction = new THREE.Vector3().subVectors(pos, ch.position).normalize();
-  let slope = dist
-  if (slope > 1) slope = 1
-  else if (slope < 0.5) slope = 0.5
-  const step = direction.multiplyScalar(speed * slope)
+  const step = direction.multiplyScalar(speed)
 
   // Prevent overshooting the target
   if (step.length() > dist) {

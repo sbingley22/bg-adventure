@@ -54,6 +54,8 @@ function addCharacter(scene, template, pos) {
 
   const character = cloneCharacter(scene, template, pos)
   playAnimation(character, "Sword Idle")
+  setCharUserData(character)
+
   if (templates[template].meshColors) templates[template].meshColors.forEach(m => changeMeshColor(character.obj, m.name, m.color))
   if (templates[template].morphs) templates[template].morphs.forEach(m => updateMorph(character.obj, m.meshName, m.morphName, m.value))
   if (templates[template].scale) character.obj.scale.set(...templates[template].scale)
@@ -86,6 +88,12 @@ function cloneCharacter(scene, template, pos) {
   return character
 }
 
+function setCharUserData(c) {
+  const userData = c.obj.userData
+  userData.health = 100
+  userData.speed = 1.5
+}
+
 // Function to play an animation by name with fade effect
 function playAnimation(c, name) {
   if (!c) return
@@ -106,7 +114,7 @@ function playAnimation(c, name) {
     }
     c.obj.userData.activeAction.reset().fadeIn(0.1).play();
     
-    if (["Sword Slash", "Pistol Fire", "Fight Jab", "Take Damage"].includes(name)) {
+    if (["Sword Slash", "Pistol Fire", "Fight Jab", "Take Damage", "Die"].includes(name)) {
       c.obj.userData.activeAction.setLoop(THREE.LoopOnce, 1);
       c.obj.userData.activeAction.clampWhenFinished = true;
     }
