@@ -42,7 +42,7 @@ function findNearestChar(i, chars) {
 }
 
 function distanceToPlayer(chars, ch) {
-  return ch.position.distanceTo(chars[0].position)
+  return ch.position.distanceTo(chars[0].obj.position)
 }
 
 function moveTo(ch, pos, minimumDistance = 0.01, delta) {
@@ -65,6 +65,23 @@ function moveTo(ch, pos, minimumDistance = 0.01, delta) {
 }
 
 function getActiveAction(c) { return c.userData.activeAction.getClip().name }
+
+function damagePlayer(chars, dmg) {
+  const c = chars[0]
+  const p = c.obj
+
+  p.userData.health -= dmg
+
+  if (p.userData.health <= 0) {
+    playAnimation(c, "Die")
+    setTimeout(() => {
+      console.log("Restart")
+    }, 2000);
+  }
+  else {
+    playAnimation(c, "Take Damage")
+  }
+}
 
 function damageChar(c, dmg) {
   const obj = c.obj
@@ -108,8 +125,90 @@ function updatePlayer(chars, delta) {
 
 }
 
-function updateAi(chars) {
+function updateAi(chars, delta) {
+  for (let index = 1; index < chars.length; index++) {
+    const c = chars[index];
 
+    if (c.obj.userData.health <= 0) continue
+
+    if (c.obj.userData.status === "hostile") {
+      hostileAi(chars, c, index, delta)
+    } else {
+      const dist = distanceToPlayer(chars, c.obj)
+      if (dist < 10) becomeHostile(chars, c, index)
+    }
+  }
+}
+
+function becomeHostile(chars, c, i) {
+  c.obj.userData.status = "hostile"
+  playAnimation(c, "Sword Idle")
+
+  chars.forEach((ch, index) => {
+    if (index === i) return
+    if (ch.obj.userData.health <= 0) return
+    const dist = ch.obj.position.distanceTo(c.obj.position)
+    if (dist < 10) {
+      ch.obj.userData.status = "hostile"
+      playAnimation(c, "Sword Idle")
+    }
+  })
+}
+
+function hostileAi(chars, c, index, delta) {
+  rotateToFace(c.obj, chars[0].obj)
+  chars[index].obj.userData.reload -= delta
+
+  const combatType = c.obj.userData.combatType
+  if (combatType === "mage") {
+    if (moveTo(c.obj, chars[0].obj.position, 5, delta)) {
+      // in striking range
+      if (getActiveAction(c.obj) === "Sword Idle" && chars[index].obj.userData.reload <= 0) {
+        playAnimation(c, "Fight Jab")
+        setTimeout(() => {
+          damagePlayer(chars, 10)
+        }, 200);
+        chars[index].obj.userData.reload = 4.0
+      }
+      else if (getActiveAction(c.obj) === "Walking") {
+        playAnimation(c, "Sword Idle")
+      }
+    }
+  }
+  else if (combatType === "archer") {
+    if (moveTo(c.obj, chars[0].obj.position, 8, delta)) {
+      if (getActiveAction(c.obj) === "Sword Idle" && chars[index].obj.userData.reload <= 0) {
+        playAnimation(c, "Pistol Fire")
+        setTimeout(() => {
+          damagePlayer(chars, 5)
+        }, 200);
+        chars[index].obj.userData.reload = 3.0
+      }
+      else if (getActiveAction(c.obj) === "Walking") {
+        playAnimation(c, "Sword Idle")
+      }
+    }
+    else {
+      playAnimation(c, "Walking")
+    }
+  }
+  else {
+    if (moveTo(c.obj, chars[0].obj.position, 1, delta)) {
+      if (getActiveAction(c.obj) === "Sword Idle" && chars[index].obj.userData.reload <= 0) {
+        playAnimation(c, "Sword Slash")
+        setTimeout(() => {
+          damagePlayer(chars, 5)
+        }, 200);
+        chars[index].obj.userData.reload = 1.0
+      }
+      else if (getActiveAction(c.obj) === "Walking") {
+        playAnimation(c, "Sword Idle")
+      }
+    }
+    else {
+      playAnimation(c, "Walking")
+    }
+  }
 }
 
 export {

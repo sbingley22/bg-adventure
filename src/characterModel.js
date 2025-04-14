@@ -13,15 +13,21 @@ const templates = {
     meshColors: [{name: "anagen_1", color: 0x996655}],
     scale: [1,1.1,1],
   },
-  "Fem": {
-    meshes: ["Ana", "Hair-Parted", "Sword", "Shield"],
-    meshColors: [{name: "ana_1", color: 0xbbaa66}],
+  "Mage": {
+    meshes: ["Ana", "Hair-Parted", "Fireball", "Iceball"],
+    meshColors: [{name: "ana_1", color: 0x772277}],
     morphs: [{meshName: "ana", morphName: "Hands Fist", value: 0.5}],
     scale: [1,1,1],
   },
-  "Male": {
-    meshes: ["Adam", "HairM-Mowhawk", "Pistol"],
-    meshColors: [{name: "adam_1", color: 0x99AA44}],
+  "Archer": {
+    meshes: ["Adam", "HairM-Mowhawk", "Crossbow"],
+    meshColors: [{name: "adam_1", color: 0x787833}],
+    morphs: [{meshName: "adam", morphName: "Hands Fist", value: 1}],
+    scale: [1,1.1,1],
+  },
+  "Grunt": {
+    meshes: ["Adam", "Sword"],
+    meshColors: [{name: "adam_1", color: 0x992233}, {name: "adam", color: 0x887766}],
     morphs: [{meshName: "adam", morphName: "Hands Fist", value: 1}, {meshName: "adam", morphName: "Jacked", value: 1}],
     scale: [1,1.1,1],
   },
@@ -58,8 +64,8 @@ function addCharacter(scene, template, pos) {
   if (charModel === null) { console.warn("Model not yet loaded"); return; }
 
   const character = cloneCharacter(scene, template, pos)
-  playAnimation(character, "Sword Idle")
-  setCharUserData(character)
+  playAnimation(character, "Idle")
+  setCharUserData(character, template)
 
   if (templates[template].meshColors) templates[template].meshColors.forEach(m => changeMeshColor(character.obj, m.name, m.color))
   if (templates[template].morphs) templates[template].morphs.forEach(m => updateMorph(character.obj, m.meshName, m.morphName, m.value))
@@ -74,6 +80,18 @@ function cloneCharacter(scene, template, pos) {
   clone.position.set(pos[0], pos[1], pos[2])
   showMeshes(clone, templates[template].meshes)
   scene.add(clone);
+
+  // Clone materials to prevent shared state
+  clone.traverse((child) => {
+    if (child.isMesh && child.material) {
+      // If the mesh has an array of materials
+      if (Array.isArray(child.material)) {
+        child.material = child.material.map(mat => mat.clone())
+      } else {
+        child.material = child.material.clone()
+      }
+    }
+  })
 
   const cloneMixer = new THREE.AnimationMixer(clone);
   clone.userData.previousAction = null
@@ -93,10 +111,39 @@ function cloneCharacter(scene, template, pos) {
   return character
 }
 
-function setCharUserData(c) {
+function setCharUserData(c, template=null) {
   const userData = c.obj.userData
   userData.health = 100
-  userData.speed = 1.5
+  userData.speed = 1.2
+  userData.reload = 1
+  userData.status = "idle"
+  userData.combatType = "melee"
+
+  if (template === "Hero") {
+    userData.combatType = "all"
+    userData.speed = 1.6
+  }
+  else if (template === "Archer") {
+    userData.combatType = "archer"
+  }
+  else if (template === "Grunt") {
+    userData.speed = 1.1
+  }
+  else if (template === "Mage") {
+    userData.combatType = "mage"
+  }
+  else if (template === "Knight") {
+    userData.speed = 1.0
+  }
+}
+
+function animHierachy(currentAnim, anim) {
+  const basic = ["Idle", "Jogging", "Walking", "Pistol Aim", "Pistol Idle"]
+  const medium = ["Pistol Fire", "Fight Jab", "Take Damage", "Sword Slash"]
+  if (currentAnim === "Die") return false
+  if (basic.includes(currentAnim)) return true
+  if (basic.includes(anim) && medium.includes(currentAnim)) return false
+  return true
 }
 
 // Function to play an animation by name with fade effect
@@ -109,19 +156,25 @@ function playAnimation(c, name) {
     return;
   }
   
+  const userData = c.obj.userData
   const newAction = mixer.clipAction(charAnimations[name]);
-  if (c.obj.userData.activeAction !== newAction) {
-    c.obj.userData.previousAction = c.obj.userData.activeAction
-    c.obj.userData.activeAction = newAction;
-    
-    if (c.obj.userData.previousAction) {
-      c.obj.userData.previousAction.fadeOut(0.1);
+  if (userData.activeAction !== newAction) {
+    // check anim hierachy
+    if (userData.activeAction) {
+      const canTransition = animHierachy(userData.activeAction.getClip().name, name)
+      if (!canTransition) return
     }
-    c.obj.userData.activeAction.reset().fadeIn(0.1).play();
+    userData.previousAction = userData.activeAction
+    userData.activeAction = newAction;
+    
+    if (userData.previousAction) {
+      userData.previousAction.fadeOut(0.1);
+    }
+    userData.activeAction.reset().fadeIn(0.1).play();
     
     if (["Sword Slash", "Pistol Fire", "Fight Jab", "Take Damage", "Die"].includes(name)) {
-      c.obj.userData.activeAction.setLoop(THREE.LoopOnce, 1);
-      c.obj.userData.activeAction.clampWhenFinished = true;
+      userData.activeAction.setLoop(THREE.LoopOnce, 1);
+      userData.activeAction.clampWhenFinished = true;
     }
   }
 }
@@ -169,7 +222,7 @@ function updateMorph(obj, meshName, morphName, value) {
         child.morphTargetInfluences[morphIndex] = value
       }
       else {
-        console.log("Couldn't find morph", obj, meshName)
+        //console.log("Couldn't find morph", obj, meshName)
       }
     }
   })

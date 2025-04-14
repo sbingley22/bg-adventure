@@ -10,7 +10,7 @@ let scene
 let renderer
 let animationFrameId
 
-function runGame(levelName="village") {
+function runGame(levelName="village", effects=null) {
   const width = document.body.clientWidth
   const height = document.body.clientHeight
   const scene = new THREE.Scene();
@@ -25,13 +25,28 @@ function runGame(levelName="village") {
   document.body.appendChild(renderer.domElement);
   renderer.domElement.classList.add('three-scene')
 
-  const { composer, pixelPass, noisePass } = setupPostProcessing(renderer, scene, camera);
+  const { composer, pixelPass, noisePass, greyPass, dotScreenPass, toonPass, brightnessPass } = setupPostProcessing(renderer, scene, camera);
   scene.background = null
-  //console.log(pixelPass, noisePass)
-  pixelPass.uniforms.pixelSize.value = 3.0
-  pixelPass.uniforms.pixelSize.value = 1.0
-  noisePass.enabled = false
+  pixelPass.uniforms.pixelSize.value = 4.0
   noisePass.uniforms.amount.value = 0.5
+  noisePass.uniforms.scale.value = 1.0
+  noisePass.uniforms.speed.value = 1.0
+  greyPass.uniforms.amount.value = 0.9
+  greyPass.uniforms.brightness.value = 1.0
+  dotScreenPass.uniforms['scale'].value = 9.0;
+  dotScreenPass.uniforms['angle'].value = 0.785;
+  toonPass.uniforms.levels.value = 6.0;
+  brightnessPass.uniforms.brightness.value = 2.0;
+  
+  noisePass.enabled = false
+  pixelPass.uniforms.pixelSize.value = 1.0
+  greyPass.enabled = false
+  dotScreenPass.enabled = false
+  //toonPass.enabled = false
+  if (effects=null) {
+    pixelPass.uniforms.pixelSize.value = 1.0
+    noisePass.enabled = false
+  }
 
   const light = new THREE.DirectionalLight(0xffffff, 3);
   light.position.set(5, 10, 5);
