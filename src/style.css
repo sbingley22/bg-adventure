@@ -23,12 +23,22 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  position: relative;
 }
 
 .three-scene {
   margin: 0;
   padding: 0;
   background: radial-gradient(circle, #110 20%, #000);
-  /*background: linear-gradient(#333 0%, #100 100%);*/
   /*background: linear-gradient(#111, #000);*/
+}
+
+.hud-info {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 10px;
+  background-color: black;
+  border-top-left-radius: 20%;
+  /*border-bottom-left-radius: 20%;*/
 }

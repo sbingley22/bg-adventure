@@ -9,4 +9,8 @@ const effects = {
   "brightness": 1.0,
 }
 
-Game.runGame("village", effects)
+const playerData = {
+  health: 1000,
+}
+
+Game.runGame("village", effects, playerData)

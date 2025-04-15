@@ -10,7 +10,7 @@ let scene
 let renderer
 let animationFrameId
 
-function runGame(levelName="village", effects=null) {
+function runGame(levelName="village", effects=null, playerData=null) {
   const width = document.body.clientWidth
   const height = document.body.clientHeight
   const scene = new THREE.Scene();
@@ -61,6 +61,15 @@ function runGame(levelName="village", effects=null) {
   level.backgrounds.forEach(b => {
     createBackground(scene, b.type, b.pos, b.rot, b.scale, b.wrap, b.col)
   })
+
+  if (playerData) {
+    // Load player data after player model has loaded
+    setTimeout(() => {
+      if (chars.length < 1) return
+      const p = chars[0].obj.userData
+      if (playerData.health) p.health = playerData.health
+    }, 1000);
+  }
 
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();

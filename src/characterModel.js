@@ -138,8 +138,8 @@ function setCharUserData(c, template=null) {
 }
 
 function animHierachy(currentAnim, anim) {
-  const basic = ["Idle", "Jogging", "Walking", "Pistol Aim", "Pistol Idle"]
-  const medium = ["Pistol Fire", "Fight Jab", "Take Damage", "Sword Slash"]
+  const basic = ["Idle", "Jogging", "Walking", "Pistol Aim", "Pistol Idle", "Take Damage"]
+  const medium = ["Pistol Fire", "Fight Jab", "Sword Slash"]
   if (currentAnim === "Die") return false
   if (basic.includes(currentAnim)) return true
   if (basic.includes(anim) && medium.includes(currentAnim)) return false

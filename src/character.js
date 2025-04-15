@@ -53,6 +53,7 @@ function moveTo(ch, pos, minimumDistance = 0.01, delta) {
   const speed = charSpeed * delta
   const direction = new THREE.Vector3().subVectors(pos, ch.position).normalize();
   const step = direction.multiplyScalar(speed)
+  //console.log(speed, charSpeed)
 
   // Prevent overshooting the target
   if (step.length() > dist) {
@@ -65,6 +66,10 @@ function moveTo(ch, pos, minimumDistance = 0.01, delta) {
 }
 
 function getActiveAction(c) { return c.userData.activeAction.getClip().name }
+function charIsIdle(c) {
+  if (["Idle", "Sword Idle", "Pistol Ready", "Pistol Aim", "Take Damage"].includes(c.userData.activeAction.getClip().name)) return true
+  else return false
+}
 
 function damagePlayer(chars, dmg) {
   const c = chars[0]
@@ -81,6 +86,9 @@ function damagePlayer(chars, dmg) {
   else {
     playAnimation(c, "Take Damage")
   }
+
+  const hudHealth = document.getElementById('hud-health')
+  hudHealth.innerText = "Health: " + Math.floor(p.userData.health)
 }
 
 function damageChar(c, dmg) {
@@ -91,14 +99,14 @@ function damageChar(c, dmg) {
 }
 
 function updateCharacters(chars, delta) {
-  chars.forEach((c, i) => {
-    if (i === 0) updatePlayer(chars, delta)
-    else updateAi(chars, delta)
-  })
+  updatePlayer(chars, delta)
+  updateAi(chars, delta)
 }
 
 function updatePlayer(chars, delta) {
   const p = chars[0].obj
+
+  p.userData.reload -= delta
 
   // Move to destination
   if (p.userData.destination && p.userData.destination !== null) {
@@ -114,12 +122,15 @@ function updatePlayer(chars, delta) {
   else {
     //try attacking
     const [ci,cd] = findNearestChar(0, chars)
-    if (ci != -1 && cd <= 1.5 && getActiveAction(p) === "Sword Idle") {
-      playAnimation(chars[0], "Sword Slash")
-      rotateToFace(p, chars[ci].obj)
-      setTimeout(() => {
-        damageChar(chars[ci], 20)
-      }, 200);
+    if (p.userData.reload <= 0) {
+      if (ci != -1 && cd <= 1.5 && charIsIdle(p)) {
+        playAnimation(chars[0], "Sword Slash")
+        rotateToFace(p, chars[ci].obj)
+        setTimeout(() => {
+          damageChar(chars[ci], 20)
+        }, 200);
+        p.userData.reload = 1
+      }
     }
   }
 
@@ -163,7 +174,7 @@ function hostileAi(chars, c, index, delta) {
   if (combatType === "mage") {
     if (moveTo(c.obj, chars[0].obj.position, 5, delta)) {
       // in striking range
-      if (getActiveAction(c.obj) === "Sword Idle" && chars[index].obj.userData.reload <= 0) {
+      if (charIsIdle(c.obj) && chars[index].obj.userData.reload <= 0) {
         playAnimation(c, "Fight Jab")
         setTimeout(() => {
           damagePlayer(chars, 10)
@@ -177,7 +188,7 @@ function hostileAi(chars, c, index, delta) {
   }
   else if (combatType === "archer") {
     if (moveTo(c.obj, chars[0].obj.position, 8, delta)) {
-      if (getActiveAction(c.obj) === "Sword Idle" && chars[index].obj.userData.reload <= 0) {
+      if (charIsIdle(c.obj) && chars[index].obj.userData.reload <= 0) {
         playAnimation(c, "Pistol Fire")
         setTimeout(() => {
           damagePlayer(chars, 5)
@@ -193,8 +204,9 @@ function hostileAi(chars, c, index, delta) {
     }
   }
   else {
+    // default to melee
     if (moveTo(c.obj, chars[0].obj.position, 1, delta)) {
-      if (getActiveAction(c.obj) === "Sword Idle" && chars[index].obj.userData.reload <= 0) {
+      if (charIsIdle(c.obj) && chars[index].obj.userData.reload <= 0) {
         playAnimation(c, "Sword Slash")
         setTimeout(() => {
           damagePlayer(chars, 5)
