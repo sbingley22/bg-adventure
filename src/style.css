@@ -33,7 +33,7 @@ body {
   /*background: linear-gradient(#111, #000);*/
 }
 
-.hud-info {
+#hud-info {
   position: absolute;
   bottom: 0;
   right: 0;

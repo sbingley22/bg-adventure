@@ -67,13 +67,18 @@ function moveTo(ch, pos, minimumDistance = 0.01, delta) {
 
 function getActiveAction(c) { return c.userData.activeAction.getClip().name }
 function charIsIdle(c) {
-  if (["Idle", "Sword Idle", "Pistol Ready", "Pistol Aim", "Take Damage"].includes(c.userData.activeAction.getClip().name)) return true
+  const name = c.userData.activeAction.getClip().name
+  if (["Idle", "Sword Idle", "Pistol Ready", "Pistol Aim"].includes(name)) return true
+  // prevent player from getting stun locked
+  //else if (c.userData.isPlayer && name === "Take Damage") return true 
   else return false
 }
 
 function damagePlayer(chars, dmg) {
   const c = chars[0]
   const p = c.obj
+  const hudInfo = document.getElementById('hud-info')
+  const hudHealth = document.getElementById('hud-health')
 
   p.userData.health -= dmg
 
@@ -85,9 +90,12 @@ function damagePlayer(chars, dmg) {
   }
   else {
     playAnimation(c, "Take Damage")
+    hudInfo.style.backgroundColor = "red"
+    setTimeout(() => {
+      hudInfo.style.backgroundColor = "black"
+    }, 200);
   }
 
-  const hudHealth = document.getElementById('hud-health')
   hudHealth.innerText = "Health: " + Math.floor(p.userData.health)
 }
 
@@ -96,6 +104,8 @@ function damageChar(c, dmg) {
   obj.userData.health -= dmg
   if (obj.userData.health <= 0) playAnimation(c, "Die")
   else playAnimation(c, "Take Damage")
+
+  if (obj.userData.combatType !== "melee") obj.userData.reload += 0.5
 }
 
 function updateCharacters(chars, delta) {
@@ -121,15 +131,25 @@ function updatePlayer(chars, delta) {
   }
   else {
     //try attacking
-    const [ci,cd] = findNearestChar(0, chars)
-    if (p.userData.reload <= 0) {
-      if (ci != -1 && cd <= 1.5 && charIsIdle(p)) {
-        playAnimation(chars[0], "Sword Slash")
-        rotateToFace(p, chars[ci].obj)
-        setTimeout(() => {
-          damageChar(chars[ci], 20)
-        }, 200);
-        p.userData.reload = 1
+    if (p.userData.reload <= 0 && charIsIdle(p)) {
+      const [ci,cd] = findNearestChar(0, chars)
+      if (ci != -1) {
+        if (cd <= 1.95) {
+          playAnimation(chars[0], "Sword Slash")
+          rotateToFace(p, chars[ci].obj)
+          setTimeout(() => {
+            damageChar(chars[ci], 20)
+          }, 200);
+          p.userData.reload = 1
+        }
+        else if (cd <= 5) {
+          playAnimation(chars[0], "Fight Jab")
+          rotateToFace(p, chars[ci].obj)
+          setTimeout(() => {
+            damageChar(chars[ci], 5)
+          }, 200);
+          p.userData.reload = 1
+        }
       }
     }
   }

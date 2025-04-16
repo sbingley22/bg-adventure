@@ -118,6 +118,7 @@ function setCharUserData(c, template=null) {
   userData.reload = 1
   userData.status = "idle"
   userData.combatType = "melee"
+  userData.template = template
 
   if (template === "Hero") {
     userData.combatType = "all"
@@ -138,9 +139,11 @@ function setCharUserData(c, template=null) {
 }
 
 function animHierachy(currentAnim, anim) {
-  const basic = ["Idle", "Jogging", "Walking", "Pistol Aim", "Pistol Idle", "Take Damage"]
-  const medium = ["Pistol Fire", "Fight Jab", "Sword Slash"]
+  const basic = ["Idle", "Jogging", "Walking", "Pistol Aim", "Pistol Idle"]
+  const medium = ["Pistol Fire", "Fight Jab", "Sword Slash", "Take Damage"]
+  const attacking = ["Pistol Fire", "Fight Jab", "Sword Slash"]
   if (currentAnim === "Die") return false
+  if (attacking.includes(currentAnim) && anim==="Take Damage") return false
   if (basic.includes(currentAnim)) return true
   if (basic.includes(anim) && medium.includes(currentAnim)) return false
   return true
@@ -175,6 +178,9 @@ function playAnimation(c, name) {
     if (["Sword Slash", "Pistol Fire", "Fight Jab", "Take Damage", "Die"].includes(name)) {
       userData.activeAction.setLoop(THREE.LoopOnce, 1);
       userData.activeAction.clampWhenFinished = true;
+    }
+    if ("Take Damage" === name) {
+      userData.activeAction.timeScale = 2
     }
   }
 }
