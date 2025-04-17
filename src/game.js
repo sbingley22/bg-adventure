@@ -10,6 +10,9 @@ let scene
 let renderer
 let animationFrameId
 
+let spellFlag=null
+let playerDataPointer=null
+
 function runGame(levelName="village", effects=null, playerData=null) {
   const width = document.body.clientWidth
   const height = document.body.clientHeight
@@ -64,6 +67,7 @@ function runGame(levelName="village", effects=null, playerData=null) {
 
   if (playerData) {
     // Load player data after player model has loaded
+    playerDataPointer = playerData
     setTimeout(() => {
       if (chars.length < 1) return
       const p = chars[0].obj.userData
@@ -154,7 +158,8 @@ function runGame(levelName="village", effects=null, playerData=null) {
     const delta = clock.getDelta()
 
     if (chars.length > 0) {
-      character.updateCharacters(chars, delta, keysPressed)
+      character.updateCharacters(chars, delta, keysPressed, spellFlag)
+      spellFlag=null
 
       chars.forEach(c => {
         c.mixer.update(delta)
@@ -188,6 +193,17 @@ function runGame(levelName="village", effects=null, playerData=null) {
   });
 }
 
+function useSpell(spell) {
+  if (playerDataPointer[spell] > 0) {
+    spellFlag = spell
+    playerDataPointer[spell] -= 1
+    if (playerDataPointer[spell] <= 0) {
+      const spellButton = document.getElementById('spell-'+spell)
+      if (spellButton) spellButton.classList.add('empty')
+    }
+  }
+}
+window.useSpell = useSpell
 
 function removeScene() {
   const container = document.getElementById('three-game');

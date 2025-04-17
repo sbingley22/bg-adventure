@@ -106,7 +106,7 @@ function cloneCharacter(scene, template, pos) {
   const character = {obj: clone, mixer: cloneMixer}
   cloneMixer.addEventListener('finished', (e) => {
     const finishedAction = e.action.getClip().name
-    if (["Sword Slash", "Take Damage", "Fight Jab"].includes(finishedAction)) {
+    if (["Sword Slash", "Take Damage", "Fight Jab", "Fight Straight"].includes(finishedAction)) {
       playAnimation(character, "Sword Idle");
     }
     else if (["Pistol Fire"].includes(finishedAction)) {
@@ -151,8 +151,8 @@ function setCharUserData(c, template=null) {
 
 function animHierachy(currentAnim, anim) {
   const basic = ["Idle", "Jogging", "Walking", "Pistol Aim", "Pistol Idle"]
-  const medium = ["Pistol Fire", "Fight Jab", "Sword Slash", "Take Damage"]
-  const attacking = ["Pistol Fire", "Fight Jab", "Sword Slash"]
+  const medium = ["Pistol Fire", "Fight Jab", "Fight Straight", "Sword Slash", "Take Damage"]
+  const attacking = ["Pistol Fire", "Fight Jab", "Fight Straight", "Sword Slash"]
   if (currentAnim === "Die") return false
   if (attacking.includes(currentAnim) && anim==="Take Damage") return false
   if (basic.includes(currentAnim)) return true
@@ -186,7 +186,7 @@ function playAnimation(c, name) {
     }
     userData.activeAction.reset().fadeIn(0.1).play();
     
-    if (["Sword Slash", "Pistol Fire", "Fight Jab", "Take Damage", "Die"].includes(name)) {
+    if (["Sword Slash", "Pistol Fire", "Fight Jab", "Fight Straight", "Take Damage", "Die"].includes(name)) {
       userData.activeAction.setLoop(THREE.LoopOnce, 1);
       userData.activeAction.clampWhenFinished = true;
     }

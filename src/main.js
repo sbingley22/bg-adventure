@@ -10,7 +10,9 @@ const effects = {
 }
 
 const playerData = {
-  health: 1000,
+  health: 200,
+  stun: 2,
+  shield: 1,
 }
 
 Game.runGame("village", effects, playerData)

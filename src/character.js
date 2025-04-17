@@ -50,7 +50,8 @@ function moveTo(ch, pos, minimumDistance = 0.01, delta) {
   if (dist < minimumDistance) return true
 
   const charSpeed = ch.userData.speed ? ch.userData.speed : 1
-  const speed = charSpeed * delta
+  let speed = charSpeed * delta
+  if (ch.userData.stunned && ch.userData.stunned > 0) speed *= 0.4
   const direction = new THREE.Vector3().subVectors(pos, ch.position).normalize();
   const step = direction.multiplyScalar(speed)
   //console.log(speed, charSpeed)
@@ -77,6 +78,7 @@ function charIsIdle(c) {
 function damagePlayer(chars, dmg) {
   const c = chars[0]
   const p = c.obj
+  if (p.userData.shield > 0) return
   const hudInfo = document.getElementById('hud-info')
   const hudHealth = document.getElementById('hud-health')
 
@@ -118,15 +120,46 @@ function setSphere(c, type, length = 0.1) {
     sphere.material.opacity = 0.3
     sphere.material.color.set(0xFF3311)
   }
+  else if (type === "stun") {
+    sphere.visible = true
+    sphere.material.opacity = 0.2
+    sphere.material.color.set(0x33FF11)
+    sphere.scale.setScalar(5)
+  }
+  else if (type === "shield") {
+    sphere.visible = true
+    sphere.material.opacity = 0.25
+    sphere.material.color.set(0x3311FF)
+  }
 
   setTimeout(() => {
-    //sphere.material.opacity = 0.0
     sphere.visible = false
+    sphere.scale.setScalar(1)
   }, length * 1000)
 }
 
-function updateCharacters(chars, delta, keysPressed) {
-  updatePlayer(chars, delta, keysPressed)
+function castSpell(chars, spellFlag) {
+  const p = chars[0]
+  if (spellFlag === "stun") {
+    setSphere(p, "stun", 0.5)
+    chars.forEach((c, index) => {
+      if (index === 0) return
+      if (c.obj.position.distanceTo(p.obj.position) < 10) {
+        c.obj.userData.stunned = 5
+      }
+    });
+  }
+  else if (spellFlag === "shield") {
+    setSphere(p, "shield", 5)
+    p.obj.userData.shield = 5
+  }
+
+  playAnimation(p, "Fight Straight")
+  spellFlag = null
+}
+
+function updateCharacters(chars, delta, keysPressed, spellFlag) {
+  updatePlayer(chars, delta, keysPressed, spellFlag)
   updateAi(chars, delta)
 }
 
@@ -143,10 +176,13 @@ function keyMovement(keysPressed, p) {
   if (keyDown) p.userData.destination = pos;
 }
 
-function updatePlayer(chars, delta, keysPressed) {
+function updatePlayer(chars, delta, keysPressed, spellFlag) {
   const p = chars[0].obj
-  p.userData.reload -= delta
   keyMovement(keysPressed, p)
+
+  if (spellFlag != null) castSpell(chars, spellFlag)
+  p.userData.reload -= delta
+  p.userData.shield -= delta
 
   // Move to destination
   if (p.userData.destination && p.userData.destination !== null) {
@@ -191,6 +227,7 @@ function updateAi(chars, delta) {
     const c = chars[index];
 
     if (c.obj.userData.health <= 0) continue
+    if (c.obj.userData.stunned) c.obj.userData.stunned -= delta
 
     if (c.obj.userData.status === "hostile") {
       hostileAi(chars, c, index, delta)

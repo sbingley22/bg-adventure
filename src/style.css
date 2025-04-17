@@ -22,6 +22,7 @@ body {
   display: flex;
   place-items: center;
   min-width: 320px;
+  width: 100vw;
   min-height: 100vh;
   position: relative;
 }
@@ -41,4 +42,25 @@ body {
   background-color: black;
   border-top-left-radius: 20%;
   /*border-bottom-left-radius: 20%;*/
+}
+
+#hud-spells {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  box-sizing: border-box;
+  padding: 5px;
+}
+
+#hud-spells button {
+  font-size: 1.4rem;
+  /*border-radius: 10%;*/
+  padding: 10px;
+}
+
+#hud-spells button.empty {
+  color: grey;
 }
