@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import glb from "./assets/characters.glb?url"
 import { createShadow } from './shadow.js'
+import { addSphere } from './addSphere.js'
 
 let charAnimations = {}
 let charModel = null
@@ -66,6 +67,11 @@ function addCharacter(scene, template, pos) {
   const character = cloneCharacter(scene, template, pos)
   playAnimation(character, "Idle")
   setCharUserData(character, template)
+  character.obj.userData.sphere = addSphere(character.obj, {
+    radius: 0.9,
+    position: new THREE.Vector3(0, 1, 0),
+    color: 0xff0000
+   })
 
   if (templates[template].meshColors) templates[template].meshColors.forEach(m => changeMeshColor(character.obj, m.name, m.color))
   if (templates[template].morphs) templates[template].morphs.forEach(m => updateMorph(character.obj, m.meshName, m.morphName, m.value))
@@ -121,19 +127,24 @@ function setCharUserData(c, template=null) {
   userData.template = template
 
   if (template === "Hero") {
+    userData.health = 200
     userData.combatType = "all"
     userData.speed = 1.6
   }
   else if (template === "Archer") {
+    userData.health = 10
     userData.combatType = "archer"
   }
   else if (template === "Grunt") {
+    userData.health = 50
     userData.speed = 1.1
   }
   else if (template === "Mage") {
+    userData.health = 15
     userData.combatType = "mage"
   }
   else if (template === "Knight") {
+    userData.health = 80
     userData.speed = 1.0
   }
 }

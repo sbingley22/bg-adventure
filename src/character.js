@@ -99,24 +99,54 @@ function damagePlayer(chars, dmg) {
   hudHealth.innerText = "Health: " + Math.floor(p.userData.health)
 }
 
-function damageChar(c, dmg) {
+function damageChar(c, dmg, type=null) {
   const obj = c.obj
   obj.userData.health -= dmg
   if (obj.userData.health <= 0) playAnimation(c, "Die")
   else playAnimation(c, "Take Damage")
 
-  if (obj.userData.combatType !== "melee") obj.userData.reload += 0.5
+  if (type === "fireball") {
+    obj.userData.reload += 1.0
+    setSphere(c, type, 0.2)
+  }
 }
 
-function updateCharacters(chars, delta) {
-  updatePlayer(chars, delta)
+function setSphere(c, type, length = 0.1) {
+  const sphere = c.obj.userData.sphere
+  if (type === "fireball") {
+    sphere.visible = true
+    sphere.material.opacity = 0.3
+    sphere.material.color.set(0xFF3311)
+  }
+
+  setTimeout(() => {
+    //sphere.material.opacity = 0.0
+    sphere.visible = false
+  }, length * 1000)
+}
+
+function updateCharacters(chars, delta, keysPressed) {
+  updatePlayer(chars, delta, keysPressed)
   updateAi(chars, delta)
 }
 
-function updatePlayer(chars, delta) {
-  const p = chars[0].obj
+function keyMovement(keysPressed, p) {
+  const pos = p.position.clone();
+  const speed = 0.1
+  let keyDown = false
 
+  if (keysPressed['w'] || keysPressed['arrowup']) {pos.z -= speed; keyDown=true}
+  if (keysPressed['s'] || keysPressed['arrowdown']) {pos.z += speed; keyDown=true}
+  if (keysPressed['a'] || keysPressed['arrowleft']) {pos.x -= speed; keyDown=true}
+  if (keysPressed['d'] || keysPressed['arrowright']) {pos.x += speed; keyDown=true}
+
+  if (keyDown) p.userData.destination = pos;
+}
+
+function updatePlayer(chars, delta, keysPressed) {
+  const p = chars[0].obj
   p.userData.reload -= delta
+  keyMovement(keysPressed, p)
 
   // Move to destination
   if (p.userData.destination && p.userData.destination !== null) {
@@ -146,7 +176,7 @@ function updatePlayer(chars, delta) {
           playAnimation(chars[0], "Fight Jab")
           rotateToFace(p, chars[ci].obj)
           setTimeout(() => {
-            damageChar(chars[ci], 5)
+            damageChar(chars[ci], 5, "fireball")
           }, 200);
           p.userData.reload = 1
         }

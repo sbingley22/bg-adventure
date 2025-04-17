@@ -132,6 +132,14 @@ function runGame(levelName="village", effects=null, playerData=null) {
     }
   }
 
+  const keysPressed = {};
+  window.addEventListener('keydown', e => {
+    keysPressed[e.key.toLowerCase()] = true;
+  });
+  window.addEventListener('keyup', e => {
+    keysPressed[e.key.toLowerCase()] = false;
+  });
+
   const canvas = renderer.domElement
   canvas.addEventListener('mouseup', handleInputEnd);
   canvas.addEventListener('mousedown', handleInputStart);
@@ -146,7 +154,7 @@ function runGame(levelName="village", effects=null, playerData=null) {
     const delta = clock.getDelta()
 
     if (chars.length > 0) {
-      character.updateCharacters(chars, delta)
+      character.updateCharacters(chars, delta, keysPressed)
 
       chars.forEach(c => {
         c.mixer.update(delta)
