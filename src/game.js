@@ -158,7 +158,7 @@ function runGame(levelName="village", effects=null, playerData=null) {
     const delta = clock.getDelta()
 
     if (chars.length > 0) {
-      character.updateCharacters(chars, delta, keysPressed, spellFlag)
+      character.updateCharacters(chars, delta, keysPressed, spellFlag, playerData)
       spellFlag=null
 
       chars.forEach(c => {

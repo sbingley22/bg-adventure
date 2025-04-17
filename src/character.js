@@ -20,10 +20,26 @@ function rotateToFace(object1, object2) {
   object2.getWorldPosition(targetPosition);
   object1.lookAt(targetPosition);
 }
-
-function rotateToPos(object1, object2) {
-  object1.lookAt(object2);
+function rotateToPos(object1, pos) {
+  object1.lookAt(pos);
 }
+function rotateToPosSmooth(object1, pos, lerpFactor = 0.1) {
+  const direction = new THREE.Vector3();
+  direction.subVectors(pos, object1.position).normalize();
+
+  const targetAngle = Math.atan2(direction.x, direction.z); // Y-axis only
+  if (lerpFactor === 0) {
+    object1.rotation.y = targetAngle
+    return
+  }
+
+  // Normalize angle difference to [-π, π]
+  let angleDiff = targetAngle - object1.rotation.y;
+  angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff)); // this line is the key
+
+  object1.rotation.y += angleDiff * lerpFactor;
+}
+
 
 function findNearestChar(i, chars) {
   let nearestDistance = 999
@@ -70,8 +86,7 @@ function getActiveAction(c) { return c.userData.activeAction.getClip().name }
 function charIsIdle(c) {
   const name = c.userData.activeAction.getClip().name
   if (["Idle", "Sword Idle", "Pistol Ready", "Pistol Aim"].includes(name)) return true
-  // prevent player from getting stun locked
-  //else if (c.userData.isPlayer && name === "Take Damage") return true 
+  //else if (c.userData.isPlayer && name === "Take Damage") return true // prevent player from getting stun locked
   else return false
 }
 
@@ -158,12 +173,12 @@ function castSpell(chars, spellFlag) {
   spellFlag = null
 }
 
-function updateCharacters(chars, delta, keysPressed, spellFlag) {
-  updatePlayer(chars, delta, keysPressed, spellFlag)
+function updateCharacters(chars, delta, keysPressed, spellFlag, playerData) {
+  updatePlayer(chars, delta, keysPressed, spellFlag, playerData)
   updateAi(chars, delta)
 }
 
-function keyMovement(keysPressed, p) {
+function keyMovement(keysPressed, p, playerData, spellFlag) {
   const pos = p.position.clone();
   const speed = 0.1
   let keyDown = false
@@ -173,12 +188,29 @@ function keyMovement(keysPressed, p) {
   if (keysPressed['a'] || keysPressed['arrowleft']) {pos.x -= speed; keyDown=true}
   if (keysPressed['d'] || keysPressed['arrowright']) {pos.x += speed; keyDown=true}
 
-  if (keyDown) p.userData.destination = pos;
+  if (keyDown) p.userData.destination = pos
+
+  let spell = null
+  if (keysPressed['1']) { spell = "stun"; keysPressed['1'] = false }
+  if (keysPressed['2']) { spell = "shield"; keysPressed['2'] = false }
+  if (keysPressed['3']) console.log(playerData)
+
+  if (!playerData || spell === null) return spellFlag
+  if (playerData[spell] && playerData[spell] > 0) {
+    spellFlag = spell
+    playerData[spell] -= 1
+    if (playerData[spell] <= 0) {
+      const spellButton = document.getElementById('spell-'+spell)
+      if (spellButton) spellButton.classList.add('empty')
+    }
+  }
+
+  return spellFlag
 }
 
-function updatePlayer(chars, delta, keysPressed, spellFlag) {
+function updatePlayer(chars, delta, keysPressed, spellFlag, playerData) {
   const p = chars[0].obj
-  keyMovement(keysPressed, p)
+  spellFlag = keyMovement(keysPressed, p, playerData, spellFlag)
 
   if (spellFlag != null) castSpell(chars, spellFlag)
   p.userData.reload -= delta
@@ -192,7 +224,7 @@ function updatePlayer(chars, delta, keysPressed, spellFlag) {
     }
     else {
       playAnimation(chars[0], "Walking")
-      rotateToPos(p, p.userData.destination)
+      rotateToPosSmooth(p, p.userData.destination)
     }
   }
   else {
@@ -202,7 +234,7 @@ function updatePlayer(chars, delta, keysPressed, spellFlag) {
       if (ci != -1) {
         if (cd <= 1.95) {
           playAnimation(chars[0], "Sword Slash")
-          rotateToFace(p, chars[ci].obj)
+          rotateToPosSmooth(p, chars[ci].obj.position, 0)
           setTimeout(() => {
             damageChar(chars[ci], 20)
           }, 200);
@@ -210,7 +242,7 @@ function updatePlayer(chars, delta, keysPressed, spellFlag) {
         }
         else if (cd <= 5) {
           playAnimation(chars[0], "Fight Jab")
-          rotateToFace(p, chars[ci].obj)
+          rotateToPosSmooth(p, chars[ci].obj.position, 0)
           setTimeout(() => {
             damageChar(chars[ci], 5, "fireball")
           }, 200);
