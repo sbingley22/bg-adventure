@@ -13,7 +13,7 @@ let animationFrameId
 let spellFlag=null
 let playerDataPointer=null
 
-function runGame(levelName="village", effects=null, playerData=null) {
+function runGame(levelName="village", effects=null, playerData=null, restartGame) {
   const width = document.body.clientWidth
   const height = document.body.clientHeight
   const scene = new THREE.Scene();
@@ -26,6 +26,7 @@ function runGame(levelName="village", effects=null, playerData=null) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(width, height)
   document.body.appendChild(renderer.domElement);
+  renderer.domElement.id = "three-game"
   renderer.domElement.classList.add('three-scene')
 
   const { composer, pixelPass, noisePass, greyPass, dotScreenPass, toonPass, brightnessPass } = setupPostProcessing(renderer, scene, camera);
@@ -78,6 +79,8 @@ function runGame(levelName="village", effects=null, playerData=null) {
   if (playerData) {
     // Load player data after player model has loaded
     playerDataPointer = playerData
+    const hudHealth = document.getElementById('hud-health')
+    if (hudHealth) hudHealth.innerText = playerData.health
     setTimeout(() => {
       if (chars.length < 1) return
       const p = chars[0].obj.userData
@@ -168,7 +171,7 @@ function runGame(levelName="village", effects=null, playerData=null) {
     const delta = clock.getDelta()
 
     if (chars.length > 0) {
-      character.updateCharacters(chars, delta, keysPressed, spellFlag, playerData)
+      character.updateCharacters(chars, delta, keysPressed, spellFlag, playerData, restartGame)
       spellFlag=null
 
       chars.forEach(c => {

@@ -9,4 +9,5 @@ To do:
 add more spells
 add map navigation
 add multiple levels
+add main menu
 

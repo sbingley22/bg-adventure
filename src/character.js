@@ -100,7 +100,7 @@ function updateHudHealth(health) {
   }
 }
 
-function damagePlayer(chars, dmg) {
+function damagePlayer(chars, dmg, restartGame) {
   const c = chars[0]
   const p = c.obj
   if (p.userData.shield > 0) return
@@ -112,6 +112,7 @@ function damagePlayer(chars, dmg) {
     playAnimation(c, "Die")
     setTimeout(() => {
       console.log("Restart")
+      restartGame()
     }, 2000);
   }
   else {
@@ -138,7 +139,8 @@ function damageChar(c, dmg, type=null) {
 
   const enemyHealthBar = document.getElementById('hud-enemy-health')
   if (enemyHealthBar) {
-    enemyHealthBar.style.width = (obj.userData.health * 0.1) + '%'
+    if (obj.userData.health <= 0) enemyHealthBar.style.width = 0
+    else enemyHealthBar.style.width = (obj.userData.health * 0.1) + '%'
   }
 }
 
@@ -187,9 +189,10 @@ function castSpell(chars, spellFlag) {
   spellFlag = null
 }
 
-function updateCharacters(chars, delta, keysPressed, spellFlag, playerData) {
+function updateCharacters(chars, delta, keysPressed, spellFlag, playerData, restartGame) {
+  if (chars[0].obj.userData.health <= 0) return
   updatePlayer(chars, delta, keysPressed, spellFlag, playerData)
-  updateAi(chars, delta)
+  updateAi(chars, delta, restartGame)
 }
 
 function keyMovement(keysPressed, p, playerData, spellFlag) {
@@ -268,7 +271,7 @@ function updatePlayer(chars, delta, keysPressed, spellFlag, playerData) {
 
 }
 
-function updateAi(chars, delta) {
+function updateAi(chars, delta, restartGame) {
   for (let index = 1; index < chars.length; index++) {
     const c = chars[index];
 
@@ -276,7 +279,7 @@ function updateAi(chars, delta) {
     if (c.obj.userData.stunned) c.obj.userData.stunned -= delta
 
     if (c.obj.userData.status === "hostile") {
-      hostileAi(chars, c, index, delta)
+      hostileAi(chars, c, index, delta, restartGame)
     } else {
       const dist = distanceToPlayer(chars, c.obj)
       if (dist < 10) becomeHostile(chars, c, index)
@@ -299,7 +302,7 @@ function becomeHostile(chars, c, i) {
   })
 }
 
-function hostileAi(chars, c, index, delta) {
+function hostileAi(chars, c, index, delta, restartGame) {
   rotateToFace(c.obj, chars[0].obj)
   chars[index].obj.userData.reload -= delta
 
@@ -310,7 +313,7 @@ function hostileAi(chars, c, index, delta) {
       if (charIsIdle(c.obj) && chars[index].obj.userData.reload <= 0) {
         playAnimation(c, "Fight Jab")
         setTimeout(() => {
-          damagePlayer(chars, 10)
+          damagePlayer(chars, 10, restartGame)
         }, 200);
         chars[index].obj.userData.reload = 4.0
       }
@@ -324,7 +327,7 @@ function hostileAi(chars, c, index, delta) {
       if (charIsIdle(c.obj) && chars[index].obj.userData.reload <= 0) {
         playAnimation(c, "Pistol Fire")
         setTimeout(() => {
-          damagePlayer(chars, 5)
+          damagePlayer(chars, 5, restartGame)
         }, 200);
         chars[index].obj.userData.reload = 3.0
       }
@@ -342,7 +345,7 @@ function hostileAi(chars, c, index, delta) {
       if (charIsIdle(c.obj) && chars[index].obj.userData.reload <= 0) {
         playAnimation(c, "Sword Slash")
         setTimeout(() => {
-          damagePlayer(chars, 5)
+          damagePlayer(chars, 5, restartGame)
         }, 200);
         chars[index].obj.userData.reload = 1.0
       }

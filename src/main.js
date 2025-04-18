@@ -10,9 +10,37 @@ const effects = {
 }
 
 const playerData = {
-  health: 100,
+  health: 5,
   stun: 2,
   shield: 1,
 }
 
-Game.runGame("village", effects, playerData)
+const menuElement = document.getElementById('main-menu')
+let mode = "menu"
+let level = "village"
+
+function changeMode() {
+  if (mode === "menu") {
+    menuElement.style.display = "grid"
+  }
+  if (mode === "game") {
+    menuElement.style.display = "none"
+    Game.runGame(level, effects, playerData, restartGame)
+  }
+}
+
+function restartGame() {
+  mode = "menu"
+  changeMode()
+  Game.removeScene()
+}
+
+function startGame() {
+  level = "village"
+  mode = "game"
+  playerData.health = 100;
+  playerData.stun = 1;
+  playerData.shield = 1;
+  changeMode()
+}
+window.startGame = startGame
