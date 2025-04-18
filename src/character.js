@@ -90,12 +90,21 @@ function charIsIdle(c) {
   else return false
 }
 
+function updateHudHealth(health) {
+  const hudHealth = document.getElementById('hud-health')
+  if (hudHealth) { 
+    hudHealth.innerText = "Health: " + Math.floor(health)
+    if (health < 60) hudHealth.style.color = 'yellow'
+    else if (health < 30) hudHealth.style.color = 'red'
+    else hudHealth.style.color = 'green'
+  }
+}
+
 function damagePlayer(chars, dmg) {
   const c = chars[0]
   const p = c.obj
   if (p.userData.shield > 0) return
   const hudInfo = document.getElementById('hud-info')
-  const hudHealth = document.getElementById('hud-health')
 
   p.userData.health -= dmg
 
@@ -113,7 +122,7 @@ function damagePlayer(chars, dmg) {
     }, 200);
   }
 
-  hudHealth.innerText = "Health: " + Math.floor(p.userData.health)
+  updateHudHealth(p.userData.health)
 }
 
 function damageChar(c, dmg, type=null) {
@@ -125,6 +134,11 @@ function damageChar(c, dmg, type=null) {
   if (type === "fireball") {
     obj.userData.reload += 1.0
     setSphere(c, type, 0.2)
+  }
+
+  const enemyHealthBar = document.getElementById('hud-enemy-health')
+  if (enemyHealthBar) {
+    enemyHealthBar.style.width = (obj.userData.health * 0.1) + '%'
   }
 }
 

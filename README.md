@@ -7,7 +7,6 @@ Baldurs Gate themed adventure.
 
 To do:
 add more spells
-add spell keybindings
 add map navigation
 add multiple levels
 

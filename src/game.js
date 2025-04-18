@@ -41,14 +41,24 @@ function runGame(levelName="village", effects=null, playerData=null) {
   toonPass.uniforms.levels.value = 6.0;
   brightnessPass.uniforms.brightness.value = 2.0;
   
-  noisePass.enabled = false
-  pixelPass.uniforms.pixelSize.value = 1.0
-  greyPass.enabled = false
-  dotScreenPass.enabled = false
-  //toonPass.enabled = false
-  if (effects=null) {
+  if (!effects) {
     pixelPass.uniforms.pixelSize.value = 1.0
     noisePass.enabled = false
+    greyPass.enabled = false
+    dotScreenPass.enabled = false
+    toonPass.enabled = false
+  }
+  else {
+    if (effects.pixelize) pixelPass.uniforms.pixelSize.value = effects.pixelize
+    if (effects.noise) noisePass.uniforms.amount.value = effects.noise
+    if (effects?.noise == 0) noisePass.enabled = false
+    if (effects.greyscale) greyPass.uniforms.amount.value = effects.greyscale
+    if (effects?.greyscale == 0) greyPass.enabled = false
+    if (effects.dotScreen) dotScreenPass.uniforms['scale'].value = effects.dotScreen
+    if (effects?.dotScreen == 0) dotScreenPass.enabled = false
+    if (effects.toon) toonPass.uniforms.levels.value = effects.toon
+    if (effects?.toon == 0) toonPass.enabled = false
+    if (effects.brightness) brightnessPass.uniforms.brightness.value = effects.brightness
   }
 
   const light = new THREE.DirectionalLight(0xffffff, 3);
