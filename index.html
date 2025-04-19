@@ -12,8 +12,7 @@
       <p id="hud-health">Health: 100</p>
     </div>
     <div id="hud-enemy">
-      <div id="hud-enemy-health">
-      </div>
+      <div id="hud-enemy-health"></div>
     </div>
     <div id="hud-spells">
       <button id="spell-stun" type="button" onclick="useSpell('stun')">Stun</button>
@@ -28,9 +27,10 @@
       </div>
       <img src="./shart-smile.png" alt="">
       <div>
-        <p>options</p>
+        <h3>Screen Effects:</h3>
+        <div id="controls"></div>
       </div>
-      <button type="button" onclick="startGame()">Begin</button>
+      <button type="button" onclick="startGame()" style="min-height: 40%; font-size: 2rem;">Begin</button>
     </div>
 
     <script type="module" src="/src/main.js"></script>

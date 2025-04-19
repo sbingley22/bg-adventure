@@ -10,6 +10,7 @@ let scene
 let renderer
 let animationFrameId
 
+let zoom = 1.0
 let spellFlag=null
 let playerDataPointer=null
 
@@ -21,7 +22,6 @@ function runGame(levelName="village", effects=null, playerData=null, restartGame
   const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
   camera.position.set(0, 4, 10);
   camera.lookAt(new THREE.Vector3(0, 1, 0));
-  const zoom = 1.0
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(width, height)
@@ -178,7 +178,7 @@ function runGame(levelName="village", effects=null, playerData=null, restartGame
         c.mixer.update(delta)
       })
 
-      updateCamera(chars)
+      updateCamera(keysPressed, delta)
     }
 
     noisePass.uniforms.time.value = time * 0.001
@@ -187,12 +187,15 @@ function runGame(levelName="village", effects=null, playerData=null, restartGame
 
   animate();
 
-  function updateCamera() {
+  function updateCamera(keysPressed, delta) {
     if (!chars[0].obj) return
     const pos = chars[0].obj.position
     const offset = 5 * zoom
     camera.position.set(0, offset, pos.z + offset);
-    camera.lookAt(new THREE.Vector3(0, pos.y, pos.z));
+    camera.lookAt(new THREE.Vector3(0, pos.y, pos.z - 5));
+
+    if (keysPressed['z']) zoom += delta * 0.5
+    if (keysPressed['x']) zoom -= delta * 0.5
   }
 
   window.addEventListener('resize', () => {
